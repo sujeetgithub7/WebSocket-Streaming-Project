@@ -10,7 +10,7 @@ const connectedUsers: {
     room: string
   }
 } = {};
-
+console.log("before connection");
 wss.on('connection', function connection(userSocket: WebSocket) {
   console.log("user connected");
   userSocket.on('error', console.error);

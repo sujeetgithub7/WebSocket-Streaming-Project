@@ -4,13 +4,22 @@ import { useUser } from "../providers/userProvider";
 import { ChatBox } from "../components/ChatBox";
 import { GoTriangleRight } from "react-icons/go";
 
+//edited here
+type MessageProps = {
+    sender: string,
+    message: string
+}
+//
+
 export function HostPage() {
     const videoPlayerRef = useRef<HTMLVideoElement & { captureStream: () => MediaStream }>(null);
     const [isStreaming, setIsStreaming] = useState(false);
     const [videoFile, setVideoFile] = useState<File | null>(null);
-
+  //edited code here
+  const [receivedMessages, setReceivedMessages] = useState<MessageProps[]>([])
+  //
     const ws = useWebSocket();
-    const { userName, roomId } = useUser();
+    const { userName, roomId,  } = useUser();
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
@@ -81,6 +90,27 @@ export function HostPage() {
     }
 
     useEffect(() => {
+
+         //edited code
+
+         ws.onmessage = async (event)=>{
+            const parsedData = JSON.parse(event.data);
+
+             if (parsedData.type == "MESSAGE") {
+                    const message = {
+                        sender: parsedData.sender,
+                        message: parsedData.message
+                    }
+                    console.log(message);
+                    setReceivedMessages((prev) => [...prev, message])
+                }
+
+         }
+
+         //
+
+
+
         return () => {
             stopStreaming();
             ws.send(JSON.stringify({ type: "LEAVE_ROOM", userName }));
@@ -93,7 +123,7 @@ export function HostPage() {
                 <div className="w-4/5 h-[80vh] ">
                     <video ref={videoPlayerRef} controls className="w-full h-full rounded-lg" />
                 </div>
-                <ChatBox userName={userName} roomId={roomId} />
+                <ChatBox userName={userName} roomId={roomId} receivedMessages={receivedMessages} />
             </div>
             <div className="w-4/5 flex justify-around px-5 gap-4">
                 <input
